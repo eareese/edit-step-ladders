@@ -1,3 +1,5 @@
+// TODO: deal with random chars: & ' 0-9 etc
+
 'use strict'
 var fs = require('fs')
 
@@ -6,8 +8,16 @@ function readDictFile (filename) {
   return fs.readFileSync(filename, 'utf8').trim().split('\n').sort()
 }
 
+function isNextWordMatch (matchString) {
+  var nextWordMatcher = new RegExp('\\b' + matchString.join('\\b|\\b') + '\\b')
+  return function (element) {
+    return nextWordMatcher.test(element)
+  }
+}
+
 function getValidNextWords (word, array) {
   var nextWordsList = []
+  // TODO: find all matches
   var potentialMatches = []
 
   for (var i = 0; i <= word.length; i++) {
@@ -18,13 +28,7 @@ function getValidNextWords (word, array) {
     potentialMatches.push(wordSubstring1.concat('.', wordSubstring2))
   }
 
-  array.forEach(function (element, index, array) {
-    // find any word in "remaining dictionary" that matches my regexp
-    // if (new RegExp('\\b' + '.' + word + '\\b').test(element)) {
-    if (new RegExp('\\b' + potentialMatches.join('\\b|\\b') + '\\b').test(element)) {
-      nextWordsList.push(element)
-    }
-  })
+  nextWordsList = array.filter(isNextWordMatch(potentialMatches))
 
   return nextWordsList
 }
@@ -35,8 +39,11 @@ function printVertex (v) {
 
 class Digraph {
   constructor (dictfile) {
-    this.dictArray = readDictFile(dictfile)
-    this.dictArray.forEach(function (element, index, array) {
+    this.words = readDictFile(dictfile)
+
+    // this.nodes = this.words.map(initializeGraph)
+
+    this.words.forEach(function (element, index, array) {
       // for each word, get the array of valid next words and create the vertex.
       var nextWordsList = getValidNextWords(element, array.slice(index))
       var v = new Vertex(element, nextWordsList)
@@ -54,4 +61,4 @@ class Vertex {
 
 var graph = new Digraph('unixdict.txt')
 
-console.log(graph.dictArray.length)
+console.log(graph.words.length)
