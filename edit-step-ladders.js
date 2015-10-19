@@ -37,21 +37,13 @@ function getValidNextWords (word, array) {
   }
 
   var potentialMatches = delCharMatches.concat(addCharMatches, changeCharMatches)
-  console.log('---')
-  console.log(potentialMatches)
-  console.log('---')
   // var expExample = /^at$|^ct$|^ca$|.../
-  // var matchRe = /^ + potentialMatches.join('$|^') + $/
   var expBegin = /^/
   var expMiddle = potentialMatches.join('$|^')
   var expEnd = /$/
 
   var matchRe = new RegExp(expBegin.source + expMiddle + expEnd.source)
-  // var nextWordMatcher = new RegExp('\\b' + potentialMatches.join('\\b|\\b') + '\\b')
-  // console.log('??? ' + nextWordMatcher)
-
   var nextWordsList = array.filter(RegExp.prototype.test.bind(matchRe))
-  // var nextWordsList = array.filter(isNextWordMatch(potentialMatches))
   return nextWordsList
 }
 
@@ -90,24 +82,30 @@ Vertex.prototype.setMarked = function (newValue) {
 function toposort (g) {
   var pathLengths = new Array(g.nodes.length)
   pathLengths.fill(0)
-  console.log('test:')
-  console.log(g.findByWord('log'))
 
   g.nodes.forEach(function (vertex, vindex, array) {
-    console.log('[' + vindex + '] ' + vertex.word)
-
     vertex.edges.forEach(function (element, index, array) {
       var w = g.findByWord(element)
       var v = vindex
-      console.log('[' + vindex + '] ' + '::' + element + '(' + w + ')')
       if (pathLengths[w] <= pathLengths[v] + 1) {
         pathLengths[w] = pathLengths[v] + 1
       }
     })
   })
-  console.log(pathLengths)
   var max = Math.max.apply(Math, pathLengths)
   return max
+}
+
+// default filename to use
+var FILENAME = 'basicdict.txt'
+
+// use first input arg as FILENAME, if such a file exists
+var inputArgs = process.argv.slice(2)
+if (inputArgs.length > 0) {
+  var stats = fs.statSync(inputArgs[0])
+  if (stats.isFile()) {
+    FILENAME = inputArgs[0]
+  }
 }
 
 var graph = new Graph(FILENAME)
