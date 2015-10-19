@@ -3,6 +3,15 @@ Edit Step Ladders
 
 Usage
 ----
+Use [Node.js](https://nodejs.org/en/) to run `edit-step-ladders.js` with no arguments to process the default test file, `basicdict.txt`:
+```
+# node edit-step-ladders.js
+```
+
+Or, include a filename as an argument to process those words instead:
+```
+node edit-step-ladders.js unixdict.txt
+```
 
 About
 ----
@@ -11,3 +20,7 @@ This program identifies the number of words in the longest path of edit steps, a
 Problem statement
 ----
 > ...
+
+Resources
+----
+[unixdict.txt](http://www.puzzlers.org/pub/wordlists/unixdict.txt)
