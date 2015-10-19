@@ -1,25 +1,12 @@
-// TODO: deal with random chars: & ' 0-9 etc
-// TODO: finish!!!!
-
 'use strict'
 var fs = require('fs')
 
-// var FILENAME = 'unixdict.txt'
-var FILENAME = 'basicdict.txt'
-
 function readDictFile (filename) {
-  // return an array of words from the Unix Dict file
   var words = fs.readFileSync(filename, 'utf8').trim().split('\n').sort()
+  // filter out any word containing non-alpha characters
   return words.filter(function (item) {
     return /^([a-z]+)$/.test(item)
   })
-}
-
-function isNextWordMatch (matchString) {
-  var nextWordMatcher = new RegExp('\\b' + matchString.join('\\b|\\b') + '\\b')
-  return function (element) {
-    return nextWordMatcher.test(element)
-  }
 }
 
 function getValidNextWords (word, array) {
@@ -71,7 +58,6 @@ function getValidNextWords (word, array) {
 function Graph (filename) {
   this.nodes = []
   this.wordList = readDictFile(filename)
-  console.log('--- graph instantiated. ---')
 }
 Graph.prototype.initializeGraph = function () {
   this.nodes = this.wordList.map(function (word, index, array) {
@@ -79,11 +65,6 @@ Graph.prototype.initializeGraph = function () {
     var nextWordsList = getValidNextWords(word, array.slice(index + 1))
     var v = new Vertex(index, word, nextWordsList)
     return v
-  })
-}
-Graph.prototype.print = function () {
-  this.nodes.forEach(function (element, index, array) {
-    console.log('[' + index + '] ' + element.word + ': ' + element.edges)
   })
 }
 Graph.prototype.findByWord = function (word) {
@@ -107,8 +88,8 @@ Vertex.prototype.setMarked = function (newValue) {
 }
 
 function toposort (g) {
-  var specialArray = new Array(g.nodes.length)
-  specialArray.fill(0)
+  var pathLengths = new Array(g.nodes.length)
+  pathLengths.fill(0)
   console.log('test:')
   console.log(g.findByWord('log'))
 
@@ -119,21 +100,19 @@ function toposort (g) {
       var w = g.findByWord(element)
       var v = vindex
       console.log('[' + vindex + '] ' + '::' + element + '(' + w + ')')
-      if (specialArray[w] <= specialArray[v] + 1) {
-        specialArray[w] = specialArray[v] + 1
+      if (pathLengths[w] <= pathLengths[v] + 1) {
+        pathLengths[w] = pathLengths[v] + 1
       }
     })
   })
-  console.log(specialArray)
-  var max = Math.max.apply(Math, specialArray)
+  console.log(pathLengths)
+  var max = Math.max.apply(Math, pathLengths)
   return max
 }
 
 var graph = new Graph(FILENAME)
 graph.initializeGraph()
-graph.print()
-var result = toposort(graph)
-console.log('toposort returned ' + result)
-console.log('so the output will be:')
-console.log('----------')
-console.log(result + 1)
+// toposort will return the length of the longest PATH, but we want
+// to return the number of nodes or words in the longest path.
+var result = toposort(graph) + 1
+console.log(result)
