@@ -97,18 +97,18 @@ function toposort (g) {
 }
 
 // default filename to use
-var FILENAME = 'basicdict.txt'
+var filename = 'basicdict.txt'
 
-// use first input arg as FILENAME, if such a file exists
+// use first input arg as filename, if such a file exists
 var inputArgs = process.argv.slice(2)
 if (inputArgs.length > 0) {
   var stats = fs.statSync(inputArgs[0])
   if (stats.isFile()) {
-    FILENAME = inputArgs[0]
+    filename = inputArgs[0]
   }
 }
 
-var graph = new Graph(FILENAME)
+var graph = new Graph(filename)
 graph.initializeGraph()
 // toposort will return the length of the longest PATH, but we want
 // to return the number of nodes or words in the longest path.
