@@ -9,7 +9,10 @@ var FILENAME = 'basicdict.txt'
 
 function readDictFile (filename) {
   // return an array of words from the Unix Dict file
-  return fs.readFileSync(filename, 'utf8').trim().split('\n').sort()
+  var words = fs.readFileSync(filename, 'utf8').trim().split('\n').sort()
+  return words.filter(function (item) {
+    return /^([a-z]+)$/.test(item)
+  })
 }
 
 function isNextWordMatch (matchString) {
@@ -47,7 +50,21 @@ function getValidNextWords (word, array) {
   }
 
   var potentialMatches = delCharMatches.concat(addCharMatches, changeCharMatches)
-  var nextWordsList = array.filter(isNextWordMatch(potentialMatches))
+  console.log('---')
+  console.log(potentialMatches)
+  console.log('---')
+  // var expExample = /^at$|^ct$|^ca$|.../
+  // var matchRe = /^ + potentialMatches.join('$|^') + $/
+  var expBegin = /^/
+  var expMiddle = potentialMatches.join('$|^')
+  var expEnd = /$/
+
+  var matchRe = new RegExp(expBegin.source + expMiddle + expEnd.source)
+  // var nextWordMatcher = new RegExp('\\b' + potentialMatches.join('\\b|\\b') + '\\b')
+  // console.log('??? ' + nextWordMatcher)
+
+  var nextWordsList = array.filter(RegExp.prototype.test.bind(matchRe))
+  // var nextWordsList = array.filter(isNextWordMatch(potentialMatches))
   return nextWordsList
 }
 
@@ -102,11 +119,12 @@ function toposort (g) {
       var w = g.findByWord(element)
       var v = vindex
       console.log('[' + vindex + '] ' + '::' + element + '(' + w + ')')
-      if (specialArray[w] <= specialArray[v]) {
-        specialArray[w] = specialArray[v]
+      if (specialArray[w] <= specialArray[v] + 1) {
+        specialArray[w] = specialArray[v] + 1
       }
     })
   })
+  console.log(specialArray)
   var max = Math.max.apply(Math, specialArray)
   return max
 }
@@ -115,4 +133,7 @@ var graph = new Graph(FILENAME)
 graph.initializeGraph()
 graph.print()
 var result = toposort(graph)
-console.log(result)
+console.log('toposort returned ' + result)
+console.log('so the output will be:')
+console.log('----------')
+console.log(result + 1)
