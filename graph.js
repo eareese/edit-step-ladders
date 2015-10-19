@@ -1,4 +1,5 @@
 // TODO: deal with random chars: & ' 0-9 etc
+// TODO: finish!!!!
 
 'use strict'
 var fs = require('fs')
@@ -19,10 +20,8 @@ function isNextWordMatch (matchString) {
 }
 
 function getValidNextWords (word, array) {
-  var nextWordsList = []
-  // TODO: find all matches
-
   var i, wordSubstring1, wordSubstring2
+
   var delCharMatches = []
   // [ 'at', 'ct', 'ca' ]
   for (i = 0; i < word.length; i++) {
@@ -48,45 +47,72 @@ function getValidNextWords (word, array) {
   }
 
   var potentialMatches = delCharMatches.concat(addCharMatches, changeCharMatches)
-  nextWordsList = array.filter(isNextWordMatch(potentialMatches))
+  var nextWordsList = array.filter(isNextWordMatch(potentialMatches))
   return nextWordsList
 }
 
-function printVertex (v) {
-  console.log(v.word + ' : (' + v.edges + ')')
+function Graph (filename) {
+  this.nodes = []
+  this.wordList = readDictFile(filename)
+  console.log('--- graph instantiated. ---')
+}
+Graph.prototype.initializeGraph = function () {
+  this.nodes = this.wordList.map(function (word, index, array) {
+    // index + 1 here to search only "the rest" of the words array
+    var nextWordsList = getValidNextWords(word, array.slice(index + 1))
+    var v = new Vertex(index, word, nextWordsList)
+    return v
+  })
+}
+Graph.prototype.print = function () {
+  this.nodes.forEach(function (element, index, array) {
+    console.log('[' + index + '] ' + element.word + ': ' + element.edges)
+  })
+}
+Graph.prototype.findByWord = function (word) {
+  var result = -1
+  this.nodes.forEach(function (element, index, array) {
+    if (element.word === word) {
+      result = index
+    }
+  })
+  return result
 }
 
-class Graph {
-  constructor () {
-    this.wordList = []
-    // this.nodes = this.initializeGraph(wordList)
-    // this.nodes = this.words.map(initializeGraph)
-    // this.words.forEach(function (element, index, array) {    }
-  }
+function Vertex (index, word, nextWords) {
+  this.index = index
+  this.word = word
+  this.edges = nextWords
+  this.marked = false
+}
+Vertex.prototype.setMarked = function (newValue) {
+  this.marked = newValue
+}
 
-  initializeGraph (filename) {
-    console.log('begin initialization...')
-    this.wordList = readDictFile(filename)
-    this.nodes = this.wordList.map(function (value, index, array) {
-      // index + 1 here to search only "the rest" of the words array
-      var nextWordsList = getValidNextWords(value, array.slice(index + 1))
-      var v = new Vertex(value, nextWordsList)
-      printVertex(v)
-      // return new Vertex(value, nextWordsList)
-      return v
+function toposort (g) {
+  var specialArray = new Array(g.nodes.length)
+  specialArray.fill(0)
+  console.log('test:')
+  console.log(g.findByWord('log'))
+
+  g.nodes.forEach(function (vertex, vindex, array) {
+    console.log('[' + vindex + '] ' + vertex.word)
+
+    vertex.edges.forEach(function (element, index, array) {
+      var w = g.findByWord(element)
+      var v = vindex
+      console.log('[' + vindex + '] ' + '::' + element + '(' + w + ')')
+      if (specialArray[w] <= specialArray[v]) {
+        specialArray[w] = specialArray[v]
+      }
     })
-    console.log('initialization complete!')
-    return this.nodes.length
-  }
+  })
+  var max = Math.max.apply(Math, specialArray)
+  return max
 }
 
-class Vertex {
-  constructor (word, nextWordsList) {
-    this.word = word
-    this.edges = nextWordsList
-  }
-}
-
-var graph = new Graph()
-console.log(graph.initializeGraph(FILENAME))
-
+var graph = new Graph(FILENAME)
+graph.initializeGraph()
+graph.print()
+var result = toposort(graph)
+console.log(result)
